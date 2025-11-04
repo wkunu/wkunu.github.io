@@ -1,84 +1,99 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>简易捏脸演示</title>
-  <style>
-    body {
-      font-family: "Microsoft YaHei", sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 0;
-      padding: 0;
-      background: #f8f8f8;
-    }
-    h1 {
-      font-size: 1.4em;
-      margin: 0.5em;
-    }
-    .canvas-container {
-      position: relative;
-      width: 90vw;
-      max-width: 800px;
-      aspect-ratio: 1 / 1;
-      background: #fff;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      pointer-events: none;
-    }
-    .controls {
-      display: flex;
-      overflow-x: auto;
-      margin-top: 10px;
-      width: 100%;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .controls button {
-      padding: 8px 12px;
-      border: 1px solid #aaa;
-      border-radius: 8px;
-      background: white;
-      font-size: 14px;
-    }
-    .controls button.active {
-      background: #ffd66b;
-      border-color: #ffb800;
-    }
-    .options {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-    .options img {
-      width: 60px;
-      height: 60px;
-      border-radius: 8px;
-      border: 2px solid transparent;
-      cursor: pointer;
-    }
-    .options img.selected {
-      border-color: #ffb800;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>捏脸网页</title>
+<style>
+  body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background: #eaeaea;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .canvas-container {
+    position: relative;
+    width: 90vw;
+    max-width: 800px;
+    aspect-ratio: 1 / 1;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-top: 10px;
+  }
+  .layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+  }
+  .controls {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    width: 100%;
+    background: #fff;
+    margin-top: 10px;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+  }
+  .controls button {
+    flex: 1;
+    font-size: 16px;
+    border: none;
+    background: transparent;
+    padding: 10px;
+    border-right: 1px solid #ccc;
+  }
+  .controls button:last-child {
+    border-right: none;
+  }
+  .controls button.active {
+    font-weight: bold;
+    background: #f9f9f9;
+  }
+  .options {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .options img {
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    background: #fff;
+  }
+  .options img.selected {
+    border-color: #ffb800;
+  }
+  .save-btn {
+    margin: 12px 0;
+    padding: 10px 20px;
+    background: #ffd66b;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  footer {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
+  }
+</style>
 </head>
 <body>
-  <h1>捏脸演示</h1>
-  
+
   <div class="canvas-container" id="canvas">
     <img id="layer-hair-back" class="layer">
     <img id="layer-face" class="layer">
@@ -88,27 +103,27 @@
     <img id="layer-eye" class="layer">
     <img id="layer-mouth" class="layer">
     <img id="layer-decoration" class="layer">
+    <img id="layer-watermark" class="layer">
   </div>
 
   <div class="controls" id="category-buttons"></div>
   <div class="options" id="option-list"></div>
 
+  <button class="save-btn" id="save-btn">保存图片</button>
+
+  <footer>捏人演示，不可商用。制作：乌入入, 仿生鱼。</footer>
+
   <script>
     const categories = [
-      { key: "hair-back", name: "后发" },
-      { key: "face", name: "脸" },
-      { key: "hair-front", name: "前发" },
-      { key: "sideburn", name: "鬓角" },
-      { key: "eyebrow", name: "眉毛" },
-      { key: "eye", name: "眼睛" },
-      { key: "mouth", name: "嘴巴" },
-      { key: "decoration", name: "装饰" },
-    ];
-
-    const sampleImages = [
-      "https://placehold.co/800x800/ffaaaa/ffffff?text=A",
-      "https://placehold.co/800x800/aaffaa/ffffff?text=B",
-      "https://placehold.co/800x800/aaaaff/ffffff?text=C"
+      { key: "hair-back", name: "后发", folder: "后发" },
+      { key: "face", name: "脸", folder: "脸" },
+      { key: "hair-front", name: "前发", folder: "前发" },
+      { key: "sideburn", name: "鬓角", folder: "鬓角" },
+      { key: "eyebrow", name: "眉毛", folder: "眉毛" },
+      { key: "eye", name: "眼睛", folder: "眼睛" },
+      { key: "mouth", name: "嘴巴", folder: "嘴巴" },
+      { key: "decoration", name: "装饰", folder: "装饰" },
+      { key: "watermark", name: "水印", folder: "水印" }
     ];
 
     const categoryButtons = document.getElementById("category-buttons");
@@ -116,7 +131,7 @@
     let currentCategory = categories[0].key;
     const selections = {};
 
-    // 初始化分类按钮
+    // 生成按钮
     categories.forEach(cat => {
       const btn = document.createElement("button");
       btn.textContent = cat.name;
@@ -125,28 +140,79 @@
         document.querySelectorAll(".controls button").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         currentCategory = cat.key;
-        renderOptions();
+        renderOptions(cat);
       };
       categoryButtons.appendChild(btn);
     });
 
-    // 渲染当前分类选项
-    function renderOptions() {
+    // 加载素材（自动检测有多少）
+    async function loadCategoryImages(folder) {
+      const images = [];
+      for (let i = 1; i <= 30; i++) { // 最多尝试30张
+        const url = `assets/${folder}${i}.png`;
+        try {
+          const res = await fetch(url);
+          if (res.ok) images.push(url);
+          else break;
+        } catch {
+          break;
+        }
+      }
+      return images;
+    }
+
+    // 渲染选项
+    async function renderOptions(cat) {
+      optionList.innerHTML = "加载中...";
+      const imgs = await loadCategoryImages(cat.folder);
       optionList.innerHTML = "";
-      sampleImages.forEach((src, i) => {
+      imgs.forEach(src => {
         const img = document.createElement("img");
         img.src = src;
-        if (selections[currentCategory] === src) img.classList.add("selected");
+        if (selections[cat.key] === src) img.classList.add("selected");
         img.onclick = () => {
-          selections[currentCategory] = src;
-          document.getElementById("layer-" + currentCategory).src = src;
-          renderOptions();
+          selections[cat.key] = src;
+          document.getElementById("layer-" + cat.key).src = src;
+          renderOptions(cat);
         };
         optionList.appendChild(img);
       });
     }
 
-    renderOptions();
+    // 初始化默认第一张
+    async function init() {
+      for (const cat of categories) {
+        const imgs = await loadCategoryImages(cat.folder);
+        if (imgs.length > 0) {
+          selections[cat.key] = imgs[0];
+          document.getElementById("layer-" + cat.key).src = imgs[0];
+        }
+      }
+      renderOptions(categories[0]);
+    }
+
+    init();
+
+    // 保存图片功能
+    document.getElementById("save-btn").onclick = async () => {
+      const canvasContainer = document.getElementById("canvas");
+      const canvas = document.createElement("canvas");
+      const size = canvasContainer.clientWidth;
+      canvas.width = 800;
+      canvas.height = 800;
+      const ctx = canvas.getContext("2d");
+      for (const cat of categories) {
+        const imgEl = document.getElementById("layer-" + cat.key);
+        if (imgEl.src) {
+          const img = await createImageBitmap(imgEl);
+          ctx.drawImage(img, 0, 0, 800, 800);
+        }
+      }
+      const link = document.createElement("a");
+      link.download = "捏脸作品.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    };
   </script>
 </body>
 </html>
