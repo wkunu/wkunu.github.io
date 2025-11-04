@@ -111,7 +111,7 @@
 
   <button class="save-btn" id="save-btn">保存图片</button>
 
-  <footer>捏人演示，不可商用。制作：乌入入, 仿生鱼。</footer>
+  <footer>仅供展示，不可商用。制作：@乌入入, @仿生鱼。</footer>
 
   <script>
     const categories = [
@@ -163,7 +163,7 @@
 
     // 渲染选项
     async function renderOptions(cat) {
-      optionList.innerHTML = "加载中...";
+      optionList.innerHTML = "";
       const imgs = await loadCategoryImages(cat.folder);
       optionList.innerHTML = "";
       imgs.forEach(src => {
