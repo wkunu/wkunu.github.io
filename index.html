@@ -13,6 +13,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    color: #000;
+    -webkit-tap-highlight-color: transparent; /* 取消移动端点击高亮 */
   }
   .canvas-container {
     position: relative;
@@ -50,6 +52,7 @@
     background: transparent;
     padding: 10px;
     border-right: 1px solid #ccc;
+    color: #000; /* 强制黑色文字 */
   }
   .controls button:last-child {
     border-right: none;
@@ -76,8 +79,17 @@
   .options img.selected {
     border-color: #ffb800;
   }
+
+  footer {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 10px;
+    text-align: center;
+    line-height: 1.4em;
+  }
+
   .save-btn {
-    margin: 12px 0;
+    margin-bottom: 20px;
     padding: 10px 20px;
     background: #ffd66b;
     border: none;
@@ -85,10 +97,21 @@
     font-size: 16px;
     cursor: pointer;
   }
-  footer {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 20px;
+
+  /* 右侧竖排数字 */
+  .score {
+    position: fixed;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-size: 20px;
+    font-weight: bold;
+    color: #222;
+    background: rgba(255,255,255,0.7);
+    padding: 6px;
+    border-radius: 8px;
   }
 </style>
 </head>
@@ -109,9 +132,7 @@
   <div class="controls" id="category-buttons"></div>
   <div class="options" id="option-list"></div>
 
-  <button class="save-btn" id="save-btn">保存图片</button>
-
-  <footer>此捏人是用于在闲鱼：乌入入 定制人类头套而制作的，<br>
+   <footer>此捏人是用于在闲鱼：乌入入 定制人类头套而制作的，<br>
 因为属于半定制，价格比全定制低很多，配件少是正常的…！<br>
 右边的神秘数字就是参考价（最低价）。<br>
 <br>
@@ -119,6 +140,10 @@
 其余之外的[任何事]都不可以…！<br>
 <br>
 捏人作者:乌入入,仿生鱼鱼。<br></footer>
+
+  <button class="save-btn" id="save-btn">保存图片</button>
+
+  <div class="score" id="score">750</div>
 
   <script>
     const categories = [
@@ -135,10 +160,13 @@
 
     const categoryButtons = document.getElementById("category-buttons");
     const optionList = document.getElementById("option-list");
+    const scoreDisplay = document.getElementById("score");
+
     let currentCategory = categories[0].key;
     const selections = {};
+    let baseScore = 750;
 
-    // 生成按钮
+    // 按钮生成
     categories.forEach(cat => {
       const btn = document.createElement("button");
       btn.textContent = cat.name;
@@ -152,10 +180,10 @@
       categoryButtons.appendChild(btn);
     });
 
-    // 加载素材（自动检测有多少）
+    // 自动加载素材
     async function loadCategoryImages(folder) {
       const images = [];
-      for (let i = 1; i <= 30; i++) { // 最多尝试30张
+      for (let i = 1; i <= 30; i++) {
         const url = `assets/${folder}${i}.png`;
         try {
           const res = await fetch(url);
@@ -166,6 +194,16 @@
         }
       }
       return images;
+    }
+
+    // 计算总值
+    function updateScore() {
+      let total = baseScore;
+      Object.values(selections).forEach(src => {
+        const match = src.match(/-(\d+)\.png$/);
+        if (match) total += parseInt(match[1]);
+      });
+      scoreDisplay.textContent = total;
     }
 
     // 渲染选项
@@ -180,13 +218,14 @@
         img.onclick = () => {
           selections[cat.key] = src;
           document.getElementById("layer-" + cat.key).src = src;
+          updateScore();
           renderOptions(cat);
         };
         optionList.appendChild(img);
       });
     }
 
-    // 初始化默认第一张
+    // 初始化默认素材
     async function init() {
       for (const cat of categories) {
         const imgs = await loadCategoryImages(cat.folder);
@@ -196,15 +235,14 @@
         }
       }
       renderOptions(categories[0]);
+      updateScore();
     }
-
     init();
 
-    // 保存图片功能
+    // 保存功能
     document.getElementById("save-btn").onclick = async () => {
       const canvasContainer = document.getElementById("canvas");
       const canvas = document.createElement("canvas");
-      const size = canvasContainer.clientWidth;
       canvas.width = 800;
       canvas.height = 800;
       const ctx = canvas.getContext("2d");
@@ -216,7 +254,7 @@
         }
       }
       const link = document.createElement("a");
-      link.download = "nieren.png";
+      link.download = "nielian.png";
       link.href = canvas.toDataURL("image/png");
       link.click();
     };
